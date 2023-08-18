@@ -9,13 +9,15 @@ import { QuizForm } from './QuizForm/QuizForm';
 // import { IconButton } from './IconButton/IconButton';
 // import { StateExample } from './StateExample/StateExample';
 
+const initialFilters = {
+  topic: '',
+  level: 'all',
+};
+
 export class App extends Component {
   state = {
     quizItems: initialQuizItems,
-    filters: {
-      topic: '',
-      level: 'all',
-    },
+    filters: initialFilters,
   };
   changeTopicFilter = newTopic => {
     console.log(newTopic);
