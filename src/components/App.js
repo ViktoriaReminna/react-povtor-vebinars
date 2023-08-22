@@ -18,40 +18,6 @@ export class App extends Component {
     },
   };
   changeTopicFilter = newTopic => {
-    console.log(newTopic);
-  };
-
-  componentDidMount() {
-    console.log('componentDidMount');
-    const savedFilters = localStorage.getItem('quiz-filters');
-    if (savedFilters !== null) {
-      // console.log(savedFilters);
-      this.setState({ filters: JSON.parse(savedFilters) });
-    }
-  }
-
-  componentDidUpdate(prevProps, prevState) {
-    // console.log('this.state:', this.state);
-    // console.log('prevState', prevState);
-    // console.log(prevState.filters === this.state.filters);
-
-    if (prevState.filters !== this.state.filters) {
-      //  console.log('Filters Changes');
-
-      localStorage.setItem('quiz-filters', JSON.stringify(this.state.filters));
-      // this.setState({quizItems: []})
-    }
-  }
-  // }
-  resetFilters = () => {
-    this.setState({
-      filters: initialFilters,
-    });
-  };
-
-  componentWillUmount() {}
-
-  changeTopicFilter = newTopic => {
     this.setState(prevState => {
       return {
         filters: {
@@ -88,17 +54,30 @@ export class App extends Component {
       };
     });
   };
-
-  render() {
+  getVisibleQuizItems = () => {
     const { filters, quizItems } = this.state;
+    const lowerCaseTopic = filters.topic.toLowerCase();
+    return quizItems.filter(quiz => {
+      const hasTopic = quiz.topic.toLowerCase().includes(lowerCaseTopic);
+      if (filters.level === 'all') {
+        return hasTopic;
+      }
+      return hasTopic && quiz.level === filters.level;
+    });
+  };
+  render() {
+    const { filters } = this.state;
+    const visibleQuizItems = this.getVisibleQuizItems();
     return (
       <Layout>
         <SearchBar
           topicFilter={filters.topic}
+          levelFilter={filters.level}
           onChangeTopic={this.changeTopicFilter}
+          onChangeLevel={this.changeLevelFilter}
         />
         <QuizForm onAdd={this.addQuiz} />
-        <QuizList items={this.state.quizItems} onDelete={this.handleDelete} />
+        <QuizList items={visibleQuizItems} onDelete={this.handleDelete} />
         {/* <IconButton variant="primary" size="sm">
         <HiBriefcase />
       </IconButton> */}
