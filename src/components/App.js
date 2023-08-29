@@ -5,6 +5,8 @@ import { GlobalStyle } from './GlobalStyle';
 import { Layout } from './Layout';
 import { Component } from 'react';
 import { QuizForm } from './QuizForm/QuizForm';
+import { LevelFilter } from './LevelFilter/LevelFilter';
+import { TopicFilter } from './TopicFilter/TopicFilter';
 // import { HiBriefcase, HiArrowCircleLeft, HiAdjustments } from 'react-icons/hi';
 // import { IconButton } from './IconButton/IconButton';
 // import { StateExample } from './StateExample/StateExample';
@@ -13,6 +15,7 @@ const initialFilters = {
   topic: '',
   level: 'all',
 };
+const localStorageKey = 'quiz-filters';
 
 export class App extends Component {
   state = {
@@ -25,7 +28,7 @@ export class App extends Component {
 
   componentDidMount() {
     console.log('componentDidMount');
-    const savedFilters = localStorage.getItem('quiz-filters');
+    const savedFilters = localStorage.getItem(localStorageKey);
     if (savedFilters !== null) {
       // console.log(savedFilters);
       this.setState({ filters: JSON.parse(savedFilters) });
@@ -33,14 +36,15 @@ export class App extends Component {
   }
 
   componentDidUpdate(prevProps, prevState) {
-    // console.log('this.state:', this.state);
-    // console.log('prevState', prevState);
+    const { filters: prevFilters } = prevState;
+    const { filters: nextFilters } = this.state;
+
+    // console.log('this.state:', this.state.filters);
+    // console.log('prevState', prevState.filters);
     // console.log(prevState.filters === this.state.filters);
 
-    if (prevState.filters !== this.state.filters) {
-      //  console.log('Filters Changes');
-
-      localStorage.setItem('quiz-filters', JSON.stringify(this.state.filters));
+    if (prevFilters !== nextFilters) {
+      localStorage.setItem(localStorageKey, JSON.stringify(this.state.filters));
       // this.setState({quizItems: []})
     }
   }
@@ -51,8 +55,7 @@ export class App extends Component {
     });
   };
 
-  componentWillUmount() {}
-
+  // eslint-disable-next-line no-dupe-class-members
   changeTopicFilter = newTopic => {
     this.setState(prevState => {
       return {
@@ -90,17 +93,33 @@ export class App extends Component {
       };
     });
   };
-
-  render() {
+  getVisibleQuizItems = () => {
     const { filters, quizItems } = this.state;
+    const lowerCaseTopic = filters.topic.toLowerCase();
+    return quizItems.filter(quiz => {
+      const hasTopic = quiz.topic.toLowerCase().includes(lowerCaseTopic);
+      const hasMatchingLevel = quiz.level === filters.level;
+      return filters.level === 'all' ? hasTopic : hasTopic && hasMatchingLevel;
+    });
+  };
+  render() {
+    console.log('componentDidMount');
+    const { filters } = this.state;
+    const visibleQuizItems = this.getVisibleQuizItems();
     return (
       <Layout>
-        <SearchBar
-          topicFilter={filters.topic}
-          onChangeTopic={this.changeTopicFilter}
-        />
+        <SearchBar onReset={this.resetFilters}>
+          <TopicFilter
+            value={filters.topic}
+            onChange={this.changeTopicFilter}
+          />
+          <LevelFilter
+            value={filters.level}
+            onChange={this.changeLevelFilter}
+          />
+        </SearchBar>
         <QuizForm onAdd={this.addQuiz} />
-        <QuizList items={this.state.quizItems} onDelete={this.handleDelete} />
+        <QuizList items={visibleQuizItems} onDelete={this.handleDelete} />
         {/* <IconButton variant="primary" size="sm">
         <HiBriefcase />
       </IconButton> */}
