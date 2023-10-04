@@ -1,4 +1,3 @@
-import { nanoid } from 'nanoid';
 import { Formik } from 'formik';
 import { StyleForm, StyleField, StyledError } from './QuizForm.styled';
 import * as Yup from 'yup';
@@ -29,7 +28,7 @@ export const QuizForm = ({ onAdd }) => {
       }}
       validationSchema={schema}
       onSubmit={(values, actions) => {
-        onAdd({ ...values, id: nanoid() });
+        onAdd({ values });
         actions.resetForm();
       }}
     >
